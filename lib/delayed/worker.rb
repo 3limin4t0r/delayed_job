@@ -10,20 +10,22 @@ require 'benchmark'
 
 module Delayed
   class Worker # rubocop:disable ClassLength
-    DEFAULT_LOG_LEVEL        = 'info'.freeze
-    DEFAULT_SLEEP_DELAY      = 5
-    DEFAULT_MAX_ATTEMPTS     = 25
-    DEFAULT_MAX_RUN_TIME     = 4.hours
-    DEFAULT_DEFAULT_PRIORITY = 0
-    DEFAULT_DELAY_JOBS       = true
-    DEFAULT_QUEUES           = [].freeze
-    DEFAULT_QUEUE_ATTRIBUTES = HashWithIndifferentAccess.new.freeze
-    DEFAULT_READ_AHEAD       = 5
+    DEFAULT_LOG_LEVEL          = 'info'.freeze
+    DEFAULT_SLEEP_DELAY        = 5
+    DEFAULT_MAX_ATTEMPTS       = 25
+    DEFAULT_MAX_RUN_TIME       = 4.hours
+    DEFAULT_DEFAULT_PRIORITY   = 0
+    DEFAULT_DELAY_JOBS         = true
+    DEFAULT_QUEUES             = [].freeze
+    DEFAULT_QUEUE_ATTRIBUTES   = HashWithIndifferentAccess.new.freeze
+    DEFAULT_READ_AHEAD         = 5
+    DEFAULT_MAX_ERROR_BYTESIZE = Float::INFINITY
+    DEFAULT_MAX_ERROR_CHARS    = Float::INFINITY
 
     cattr_accessor :min_priority, :max_priority, :max_attempts, :max_run_time,
                    :default_priority, :sleep_delay, :logger, :delay_jobs, :queues,
                    :read_ahead, :plugins, :destroy_failed_jobs, :exit_on_complete,
-                   :default_log_level
+                   :default_log_level, :max_error_bytesize, :max_error_chars
 
     # Named queue into which jobs are enqueued by default
     cattr_accessor :default_queue_name
@@ -34,16 +36,18 @@ module Delayed
     attr_accessor :name_prefix
 
     def self.reset
-      self.default_log_level = DEFAULT_LOG_LEVEL
-      self.sleep_delay       = DEFAULT_SLEEP_DELAY
-      self.max_attempts      = DEFAULT_MAX_ATTEMPTS
-      self.max_run_time      = DEFAULT_MAX_RUN_TIME
-      self.default_priority  = DEFAULT_DEFAULT_PRIORITY
-      self.delay_jobs        = DEFAULT_DELAY_JOBS
-      self.queues            = DEFAULT_QUEUES
-      self.queue_attributes  = DEFAULT_QUEUE_ATTRIBUTES
-      self.read_ahead        = DEFAULT_READ_AHEAD
-      @lifecycle             = nil
+      self.default_log_level  = DEFAULT_LOG_LEVEL
+      self.sleep_delay        = DEFAULT_SLEEP_DELAY
+      self.max_attempts       = DEFAULT_MAX_ATTEMPTS
+      self.max_run_time       = DEFAULT_MAX_RUN_TIME
+      self.default_priority   = DEFAULT_DEFAULT_PRIORITY
+      self.delay_jobs         = DEFAULT_DELAY_JOBS
+      self.queues             = DEFAULT_QUEUES
+      self.queue_attributes   = DEFAULT_QUEUE_ATTRIBUTES
+      self.read_ahead         = DEFAULT_READ_AHEAD
+      self.max_error_bytesize = DEFAULT_MAX_ERROR_BYTESIZE
+      self.max_error_chars    = DEFAULT_MAX_ERROR_CHARS
+      @lifecycle              = nil
     end
 
     # Add or remove plugins in this list before the worker is instantiated

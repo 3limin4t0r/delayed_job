@@ -47,7 +47,8 @@ module Delayed
       attr_reader :error
       def error=(error)
         @error = error
-        self.last_error = "#{error.message}\n#{error.backtrace.join("\n")}" if respond_to?(:last_error=)
+        return unless respond_to?(:last_error=)
+        self.last_error = truncate_error("#{error.message}\n#{error.backtrace.join("\n")}")
       end
 
       def failed?
@@ -146,6 +147,30 @@ module Delayed
       # Call during reload operation to clear out internal state
       def reset
         @payload_object = nil
+      end
+
+    private
+
+      def truncate_error(error_message)
+        infinity           = Float::INFINITY
+        bytesize_available = Delayed::Worker.max_error_bytesize
+        chars_available    = Delayed::Worker.max_error_chars
+
+        # short-circuit if bytesize and amount of chars are not restricted
+        return error_message unless bytesize_available < infinity || chars_available < infinity
+
+        truncated_error_message = +''
+        error_message.each_grapheme_cluster do |grapheme|
+          bytesize_available -= grapheme.bytesize
+          chars_available    -= 1
+
+          break unless bytesize_available >= 0
+          break unless chars_available    >= 0
+
+          truncated_error_message << grapheme
+        end
+
+        truncated_error_message
       end
     end
   end

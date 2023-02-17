@@ -452,6 +452,15 @@ By default all jobs will be queued without a named queue. A default named queue 
 
 If no jobs are found, the worker sleeps for the amount of time specified by the sleep delay option. Set `Delayed::Worker.sleep_delay = 60` for a 60 second sleep time.
 
+By default the `last_error` value is not truncated, which may cause SQL errors
+if the backtrace is too long. You can set `Delayed::Worker.max_error_bytesize`
+and/or `Delayed::Worker.max_error_chars` to truncate the error stored in the
+`last_error` database column. The default value is `Float::INFINITY` for both of
+them. The limit that hits first is respected. Setting
+`Delayed::Worker.max_error_bytesize` will not truncate in the middle of a
+multi-byte character or grapheme cluster. If a character goes partially over the
+limit, than the entire character is truncated.
+
 It is possible to disable delayed jobs for testing purposes. Set `Delayed::Worker.delay_jobs = false` to execute all jobs realtime.
 
 Or `Delayed::Worker.delay_jobs` can be a Proc that decides whether to execute jobs inline on a per-job basis:
@@ -472,6 +481,8 @@ Delayed::Worker.destroy_failed_jobs = false
 Delayed::Worker.sleep_delay = 60
 Delayed::Worker.max_attempts = 3
 Delayed::Worker.max_run_time = 5.minutes
+Delayed::Worker.max_error_bytesize = 0xFF_FF # MySQL/MariaDB maximum TEXT length (2^16 - 1)
+Delayed::Worker.max_error_chars = 75_000
 Delayed::Worker.read_ahead = 10
 Delayed::Worker.default_queue_name = 'default'
 Delayed::Worker.delay_jobs = !Rails.env.test?
